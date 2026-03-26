@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Social Plattform</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 15px;
+      width: 400px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #4facfe;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #00c6ff;
+    }
+
+    .chat {
+      display: none;
+      flex-direction: column;
+      height: 500px;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .message {
+      padding: 8px;
+      margin: 5px 0;
+      background: #f1f1f1;
+      border-radius: 8px;
+    }
+
+    .username {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container" id="auth">
+  <h2>Registrieren / Login</h2>
+  <input type="text" id="username" placeholder="Benutzername">
+  <input type="password" id="password" placeholder="Passwort">
+  <button onclick="register()">Registrieren</button>
+  <button onclick="login()">Login</button>
+</div>
+
+<div class="container chat" id="chat">
+  <h2>Chat</h2>
+  <div class="messages" id="messages"></div>
+  <input type="text" id="messageInput" placeholder="Nachricht schreiben...">
+  <button onclick="sendMessage()">Senden</button>
+</div>
+
+<script>
+  let currentUser = null;
+
+  function register() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    if (!username || !password) {
+      alert('Bitte alles ausfüllen');
+      return;
+    }
+
+    localStorage.setItem(username, password);
+    alert('Registriert! Jetzt einloggen.');
+  }
+
+  function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    const storedPassword = localStorage.getItem(username);
+
+    if (storedPassword === password) {
+      currentUser = username;
+      document.getElementById('auth').style.display = 'none';
+      document.getElementById('chat').style.display = 'flex';
+      loadMessages();
+    } else {
+      alert('Falsche Daten');
+    }
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value;
+
+    if (!message) return;
+
+    const messages = JSON.parse(localStorage.getItem('messages') || '[]');
+
+    messages.push({ user: currentUser, text: message });
+
+    localStorage.setItem('messages', JSON.stringify(messages));
+
+    input.value = '';
+    loadMessages();
+  }
+
+  function loadMessages() {
+    const messagesDiv = document.getElementById('messages');
+    messagesDiv.innerHTML = '';
+
+    const messages = JSON.parse(localStorage.getItem('messages') || '[]');
+
+    messages.forEach(msg => {
+      const div = document.createElement('div');
+      div.classList.add('message');
+      div.innerHTML = `<span class="username">${msg.user}:</span> ${msg.text}`;
+      messagesDiv.appendChild(div);
+    });
+
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+</script>
+
+</body>
+</html>
