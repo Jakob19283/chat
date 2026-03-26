@@ -1,159 +1,252 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini Social Plattform</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messeng123 Pro</title>
 
-    .container {
-      background: white;
-      border-radius: 15px;
-      width: 400px;
-      padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Segoe UI, sans-serif;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 
-    h2 {
-      text-align: center;
-    }
+.app{
+  width:1000px;
+  height:650px;
+  display:flex;
+  background:#fff;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 20px 40px rgba(0,0,0,.3);
+}
 
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
+.sidebar{
+  width:260px;
+  background:#111827;
+  color:white;
+  display:flex;
+  flex-direction:column;
+  padding:15px;
+}
 
-    button {
-      background: #4facfe;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
+.sidebar h2{margin:0 0 10px;text-align:center}
 
-    button:hover {
-      background: #00c6ff;
-    }
+.user{
+  background:#1f2937;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
 
-    .chat {
-      display: none;
-      flex-direction: column;
-      height: 500px;
-    }
+.online{color:#4ade80;font-size:12px}
 
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      padding: 10px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
+.group{
+  padding:10px;
+  margin:5px 0;
+  background:#374151;
+  border-radius:10px;
+  cursor:pointer;
+}
+.group:hover{background:#4b5563}
 
-    .message {
-      padding: 8px;
-      margin: 5px 0;
-      background: #f1f1f1;
-      border-radius: 8px;
-    }
+.chat{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:15px;
+}
 
-    .username {
-      font-weight: bold;
-    }
-  </style>
+.messages{
+  flex:1;
+  overflow:auto;
+  background:#f3f4f6;
+  padding:10px;
+  border-radius:10px;
+}
+
+.message{
+  margin:6px 0;
+  padding:10px;
+  border-radius:10px;
+  background:#e5e7eb;
+}
+
+.self{background:#c7d2fe}
+
+.input-area{display:flex;margin-top:10px}
+input{flex:1;padding:10px;border-radius:10px;border:1px solid #ccc}
+button{margin-left:10px;padding:10px;border:none;border-radius:10px;background:#667eea;color:#fff;cursor:pointer}
+button:hover{background:#5a67d8}
+
+.auth{
+  background:#fff;
+  padding:30px;
+  border-radius:15px;
+  width:320px;
+  text-align:center;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+
+img.avatar{
+  width:40px;height:40px;border-radius:50%;vertical-align:middle;margin-right:5px
+}
+</style>
 </head>
+
 <body>
 
-<div class="container" id="auth">
-  <h2>Registrieren / Login</h2>
-  <input type="text" id="username" placeholder="Benutzername">
-  <input type="password" id="password" placeholder="Passwort">
+<div class="auth" id="auth">
+  <h2>Messeng123</h2>
+  <input id="username" placeholder="Benutzername">
+  <input id="password" type="password" placeholder="Passwort">
+  <input id="avatar" placeholder="Profilbild URL (optional)">
   <button onclick="register()">Registrieren</button>
   <button onclick="login()">Login</button>
 </div>
 
-<div class="container chat" id="chat">
-  <h2>Chat</h2>
+<div class="app" id="app" style="display:none">
+
+<div class="sidebar">
+  <div class="user" id="userInfo"></div>
+
+  <h2>Gruppen</h2>
+  <div id="groups"></div>
+  <input id="newGroup" placeholder="Neue Gruppe">
+  <button onclick="addGroup()">+</button>
+
+  <h2>Direktnachrichten</h2>
+  <div id="users"></div>
+</div>
+
+<div class="chat">
+  <h3 id="chatTitle">Chat</h3>
   <div class="messages" id="messages"></div>
-  <input type="text" id="messageInput" placeholder="Nachricht schreiben...">
-  <button onclick="sendMessage()">Senden</button>
+  <div class="input-area">
+    <input id="msg" placeholder="Nachricht...">
+    <button onclick="send()">Senden</button>
+  </div>
+</div>
+
 </div>
 
 <script>
-  let currentUser = null;
+let currentUser=null;
+let currentChat=null;
 
-  function register() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+function register(){
+  const u=username.value;
+  const p=password.value;
+  const a=avatar.value;
+  if(!u||!p) return alert('Ausfüllen');
 
-    if (!username || !password) {
-      alert('Bitte alles ausfüllen');
-      return;
-    }
+  let users=JSON.parse(localStorage.getItem('users')||'{}');
+  users[u]={pass:p,avatar:a};
+  localStorage.setItem('users',JSON.stringify(users));
+  alert('Registriert');
+}
 
-    localStorage.setItem(username, password);
-    alert('Registriert! Jetzt einloggen.');
-  }
+function login(){
+  const u=username.value;
+  const p=password.value;
+  let users=JSON.parse(localStorage.getItem('users')||'{}');
 
-  function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+  if(users[u] && users[u].pass===p){
+    currentUser=u;
+    localStorage.setItem('online_'+u,true);
 
-    const storedPassword = localStorage.getItem(username);
+    auth.style.display='none';
+    app.style.display='flex';
 
-    if (storedPassword === password) {
-      currentUser = username;
-      document.getElementById('auth').style.display = 'none';
-      document.getElementById('chat').style.display = 'flex';
-      loadMessages();
-    } else {
-      alert('Falsche Daten');
-    }
-  }
+    loadUI();
+  } else alert('Falsch');
+}
 
-  function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const message = input.value;
+function loadUI(){
+  let users=JSON.parse(localStorage.getItem('users')||'{}');
+  userInfo.innerHTML=`<b>${currentUser}</b><br><span class='online'>● Online</span>`;
 
-    if (!message) return;
+  loadGroups();
+  loadUsers();
+}
 
-    const messages = JSON.parse(localStorage.getItem('messages') || '[]');
+function loadGroups(){
+  groups.innerHTML='';
+  let g=JSON.parse(localStorage.getItem('groups')||'[]');
+  g.forEach(x=>{
+    let d=document.createElement('div');
+    d.className='group';
+    d.innerText=x;
+    d.onclick=()=>openChat('group_'+x);
+    groups.appendChild(d);
+  });
+}
 
-    messages.push({ user: currentUser, text: message });
+function addGroup(){
+  let g=newGroup.value;
+  if(!g) return;
+  let list=JSON.parse(localStorage.getItem('groups')||'[]');
+  list.push(g);
+  localStorage.setItem('groups',JSON.stringify(list));
+  newGroup.value='';
+  loadGroups();
+}
 
-    localStorage.setItem('messages', JSON.stringify(messages));
+function loadUsers(){
+  usersDiv=document.getElementById('users');
+  usersDiv.innerHTML='';
 
-    input.value = '';
-    loadMessages();
-  }
+  let users=JSON.parse(localStorage.getItem('users')||'{}');
 
-  function loadMessages() {
-    const messagesDiv = document.getElementById('messages');
-    messagesDiv.innerHTML = '';
+  Object.keys(users).forEach(u=>{
+    if(u===currentUser) return;
+    let d=document.createElement('div');
+    d.className='group';
+    d.innerText=u;
+    d.onclick=()=>openChat('dm_'+u);
+    usersDiv.appendChild(d);
+  });
+}
 
-    const messages = JSON.parse(localStorage.getItem('messages') || '[]');
+function openChat(id){
+  currentChat=id;
+  chatTitle.innerText=id;
+  loadMessages();
+}
 
-    messages.forEach(msg => {
-      const div = document.createElement('div');
-      div.classList.add('message');
-      div.innerHTML = `<span class="username">${msg.user}:</span> ${msg.text}`;
-      messagesDiv.appendChild(div);
-    });
+function send(){
+  if(!currentChat) return alert('Chat wählen');
+  let text=msg.value;
+  if(!text) return;
 
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  }
+  let all=JSON.parse(localStorage.getItem('msgs')||'{}');
+  if(!all[currentChat]) all[currentChat]=[];
+
+  all[currentChat].push({u:currentUser,t:text});
+  localStorage.setItem('msgs',JSON.stringify(all));
+
+  msg.value='';
+  loadMessages();
+}
+
+function loadMessages(){
+  messages.innerHTML='';
+  let all=JSON.parse(localStorage.getItem('msgs')||'{}');
+  let arr=all[currentChat]||[];
+
+  arr.forEach(m=>{
+    let d=document.createElement('div');
+    d.className='message'+(m.u===currentUser?' self':'');
+    d.innerHTML=`<b>${m.u}:</b> ${m.t}`;
+    messages.appendChild(d);
+  });
+}
 </script>
 
 </body>
