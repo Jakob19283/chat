@@ -166,7 +166,7 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
   users[username] = password;
 
   // E-Mail an dich senden (Server muss eingerichtet sein)
-  fetch('https://formsubmit.co/https://4daf931137d05624f3efbfeaffda08d8', {
+  fetch('https://jakob.pammler@isarnwohld.org/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
