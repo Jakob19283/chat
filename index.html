@@ -26,27 +26,10 @@ body {
   backdrop-filter: blur(10px);
 }
 .auth h2 { font-size: 28px; margin-bottom: 25px; color: #333; }
-.auth input {
-  width: 100%;
-  margin: 12px 0;
-  padding: 12px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-}
-.auth button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 12px;
-  border: none;
-  border-radius: 20px;
-  background: #667eea;
-  color: #fff;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-}
+.auth input { width: 100%; margin: 12px 0; padding: 12px; border-radius: 20px; border: 1px solid #ccc; font-size: 16px; }
+.auth button { width: 100%; padding: 12px; margin-top: 12px; border: none; border-radius: 20px; background: #667eea; color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; }
 .auth button:hover { background: #5a67d8; }
+
 .app {
   display: flex;
   flex-direction: column;
@@ -65,12 +48,7 @@ body {
   padding: 15px;
   background: #f0f4f8;
 }
-.chat h2 {
-  text-align: center;
-  margin-bottom: 10px;
-  font-size: 22px;
-  color: #333;
-}
+.chat h2 { text-align: center; margin-bottom: 10px; font-size: 22px; color: #333; }
 .messages {
   flex: 1;
   overflow-y: auto;
@@ -80,44 +58,15 @@ body {
   box-shadow: inset 0 3px 10px rgba(0,0,0,0.05);
   margin-bottom: 12px;
 }
-.message {
-  margin: 8px 0;
-  padding: 12px 16px;
-  border-radius: 20px;
-  background: #e2e8f0;
-  max-width: 80%;
-  word-wrap: break-word;
-}
-.message.self {
-  background: #667eea;
-  color: #fff;
-  align-self: flex-end;
-}
-.input-area {
-  display: flex;
-  gap: 8px;
-}
-.input-area input {
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: 25px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-}
-.input-area input:focus {
-  border-color: #667eea;
-  outline: none;
-}
-.input-area button {
-  padding: 12px 18px;
-  border-radius: 25px;
-  border: none;
-  background: #667eea;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-}
+.message { margin: 8px 0; padding: 12px 16px; border-radius: 20px; background: #e2e8f0; max-width: 80%; word-wrap: break-word; }
+.message.self { background: #667eea; color: #fff; align-self: flex-end; }
+
+.input-area { display: flex; gap: 8px; }
+.input-area input { flex: 1; padding: 12px 16px; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; }
+.input-area input:focus { border-color: #667eea; outline: none; }
+.input-area button { padding: 12px 18px; border-radius: 25px; border: none; background: #667eea; color: #fff; font-weight: bold; cursor: pointer; }
 .input-area button:hover { background: #5a67d8; }
+
 @media(max-width:600px){
   .app { height: 95vh; }
   .chat h2 { font-size: 18px; }
@@ -131,17 +80,15 @@ body {
 
 <div class="auth" id="auth">
   <h2>Forum</h2>
-  <form id="registerForm">
-    <input type="text" name="username" placeholder="Benutzername" required>
-    <input type="password" name="password" placeholder="Passwort" required>
-    <button type="submit">Registrieren</button>
-  </form>
+  <input type="text" id="username" placeholder="Benutzername">
+  <input type="password" id="password" placeholder="Passwort">
+  <button onclick="register()">Registrieren</button>
   <button onclick="login()">Login</button>
 </div>
 
 <div class="app" id="app" style="display:none;">
   <div class="chat">
-    <h2>Forum für Diskussionen</h2>
+    <h2>Hauptchat</h2>
     <div class="messages" id="messages"></div>
     <div class="input-area">
       <input type="text" id="messageInput" placeholder="Nachricht schreiben...">
@@ -151,34 +98,27 @@ body {
 </div>
 
 <script>
+// Alte Daten löschen
+localStorage.removeItem('messages');
+localStorage.removeItem('users');
+
 let currentUser = null;
-let users = {};
 
-// Registrierung mit Form Submit
-document.getElementById('registerForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const formData = new FormData(this);
-  const username = formData.get('username');
-  const password = formData.get('password');
-
+function register() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
   if(!username || !password) return alert('Bitte alles ausfüllen');
 
+  let users = {};
   users[username] = password;
+  localStorage.setItem('users', JSON.stringify(users));
+  alert('Registriert! Jetzt einloggen.');
+}
 
-  // E-Mail an dich senden (Server muss eingerichtet sein)
-  fetch('https://jakob.pammler@isarnwohld.org/send', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  }).then(res => {
-    if(res.ok) alert('Registrierung erfolgreich!');
-    else alert('Fehler beim Senden der E-Mail.');
-  });
-});
-
-function login(){
-  const username = document.querySelector('#registerForm input[name=username]').value;
-  const password = document.querySelector('#registerForm input[name=password]').value;
+function login() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  let users = JSON.parse(localStorage.getItem('users') || '{}');
   if(users[username] === password){
     currentUser = username;
     document.getElementById('auth').style.display='none';
@@ -187,7 +127,7 @@ function login(){
   } else alert('Falsche Daten');
 }
 
-function sendMessage(){
+function sendMessage() {
   const input = document.getElementById('messageInput');
   const text = input.value;
   if(!text || !currentUser) return;
@@ -200,7 +140,7 @@ function sendMessage(){
   loadMessages();
 }
 
-function loadMessages(){
+function loadMessages() {
   const messagesDiv = document.getElementById('messages');
   messagesDiv.innerHTML='';
   const msgs = JSON.parse(localStorage.getItem('messages') || '[]');
