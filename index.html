@@ -58,22 +58,6 @@ body {
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(0,0,0,0.3);
 }
-.sidebar {
-  display: flex;
-  overflow-x: auto;
-  padding: 10px;
-  background: #1e293b;
-}
-.group {
-  padding: 10px 15px;
-  margin-right: 10px;
-  background: #2f3e59;
-  border-radius: 20px;
-  color: #fff;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.group:hover { background: #3e4e70; }
 .chat {
   flex: 1;
   display: flex;
@@ -154,9 +138,8 @@ body {
 </div>
 
 <div class="app" id="app" style="display:none;">
-  <div class="sidebar" id="groupList"></div>
   <div class="chat">
-    <h2 id="currentGroup">Keine Gruppe</h2>
+    <h2>Hauptchat</h2>
     <div class="messages" id="messages"></div>
     <div class="input-area">
       <input type="text" id="messageInput" placeholder="Nachricht schreiben...">
@@ -166,82 +149,60 @@ body {
 </div>
 
 <script>
+// Aufräumen alter Daten
+localStorage.removeItem('messages');
+localStorage.removeItem('users');
+
 let currentUser = null;
-let currentGroup = null;
 
 function register() {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
   if(!username || !password) return alert('Bitte ausfüllen');
-  localStorage.setItem(username,password);
-  alert('Registriert!');
+
+  let users = {};
+  users[username] = password;
+  localStorage.setItem('users', JSON.stringify(users));
+  alert('Registriert! Jetzt einloggen.');
 }
 
 function login(){
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
-  const stored = localStorage.getItem(username);
-  if(stored === password){
+  let users = JSON.parse(localStorage.getItem('users') || '{}');
+  if(users[username] === password){
     currentUser = username;
     document.getElementById('auth').style.display='none';
     document.getElementById('app').style.display='flex';
-    loadGroups();
+    loadMessages();
   } else alert('Falsche Daten');
 }
 
-function addGroup(name){
-  let groups = JSON.parse(localStorage.getItem('groups')||'[]');
-  if(name) groups.push(name);
-  localStorage.setItem('groups',JSON.stringify(groups));
-  loadGroups();
-}
-
-function loadGroups(){
-  const list = document.getElementById('groupList');
-  list.innerHTML='';
-  const groups = JSON.parse(localStorage.getItem('groups')||'[]');
-  if(groups.length===0){ addGroup('Allgemein'); return; }
-  groups.forEach(g=>{
-    const div=document.createElement('div');
-    div.className='group';
-    div.innerText=g;
-    div.onclick=()=>selectGroup(g);
-    list.appendChild(div);
-  });
-  selectGroup(groups[0]);
-}
-
-function selectGroup(g){
-  currentGroup=g;
-  document.getElementById('currentGroup').innerText=g;
-  loadMessages();
-}
-
 function sendMessage(){
-  if(!currentGroup) return;
-  const input=document.getElementById('messageInput');
-  const text=input.value;
-  if(!text) return;
-  const msgs=JSON.parse(localStorage.getItem('messages')||'{}');
-  if(!msgs[currentGroup]) msgs[currentGroup]=[];
-  msgs[currentGroup].push({user:currentUser,text});
-  localStorage.setItem('messages',JSON.stringify(msgs));
+  const input = document.getElementById('messageInput');
+  const text = input.value;
+  if(!text || !currentUser) return;
+
+  let msgs = JSON.parse(localStorage.getItem('messages') || '[]');
+  msgs.push({user: currentUser, text});
+  localStorage.setItem('messages', JSON.stringify(msgs));
+
   input.value='';
   loadMessages();
 }
 
 function loadMessages(){
-  const messagesDiv=document.getElementById('messages');
+  const messagesDiv = document.getElementById('messages');
   messagesDiv.innerHTML='';
-  const msgs=JSON.parse(localStorage.getItem('messages')||'{}')[currentGroup]||[];
-  msgs.forEach(m=>{
-    const div=document.createElement('div');
-    div.className='message';
-    if(m.user===currentUser) div.classList.add('self');
-    div.innerHTML=`<b>${m.user}:</b> ${m.text}`;
+  const msgs = JSON.parse(localStorage.getItem('messages') || '[]');
+  msgs.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'message';
+    if(m.user === currentUser) div.classList.add('self');
+    div.innerHTML = `<b>${m.user}:</b> ${m.text}`;
     messagesDiv.appendChild(div);
   });
-  messagesDiv.scrollTop=messagesDiv.scrollHeight;
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 </script>
 
